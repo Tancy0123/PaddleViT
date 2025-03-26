@@ -120,7 +120,8 @@ class Attention(nn.Layer):
 
     def transpose_multihead(self, x):
         """[B, N, C] -> [B, N, n_heads, head_dim] -> [B, n_heads, N, head_dim]"""
-        new_shape = x.shape[:-1] + [self.num_heads, self.attn_head_size]
+        # new_shape = x.shape[:-1] + [self.num_heads, self.attn_head_size]
+        new_shape = x.shape[:-1] + (self.num_heads, self.attn_head_size)
         x = x.reshape(new_shape)  # [B, N, C] -> [B, N, n_heads, head_dim]
         x = x.transpose([0, 2, 1, 3])  # [B, N, n_heads, head_dim] -> [B, n_heads, N, head_dim]
         return x

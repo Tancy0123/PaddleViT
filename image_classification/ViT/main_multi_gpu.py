@@ -30,6 +30,7 @@ from utils import get_logger
 from utils import write_log
 from utils import all_reduce_mean
 from vit import build_vit as build_model
+# import paddle.nn as nn
 
 
 def get_arguments():
@@ -459,12 +460,22 @@ def main_worker(*args):
                 if amp_grad_scaler is not None:
                     state_dict['amp_grad_scaler'] = amp_grad_scaler.state_dict()
                 paddle.save(state_dict, model_path)
+                # save onnx model
+                onnx_model_path = os.path.join(
+                    config.SAVE, f"Epoch-{epoch}-Loss-{avg_loss}.onnx")
+                dummy_input = paddle.randn([1, 3, config.DATA.IMAGE_SIZE, config.DATA.IMAGE_SIZE])
+                paddle.jit.save(
+                    layer=model,
+                    path=onnx_model_path,
+                    input_spec=[dummy_input
+                ])
                 message = (f"----- Save model: {model_path}")
                 write_log(local_logger, master_logger, message)
 
 
 def main():
     # config is updated in order: (1) default in config.py, (2) yaml file, (3) arguments
+    # nn.initializer.set_global_initializer(nn.initializer.Uniform(), nn.initializer.Constant())
     config = update_config(get_config(), get_arguments())
 
     # set output folder
